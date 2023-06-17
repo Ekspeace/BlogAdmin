@@ -1,0 +1,51 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 bg-secondary-theme p-5 shadow-effect">
+            <h3 class="text-center text-theme-primary"> {{ formStatus }} Categories</h3>
+            <p class="text-center mb-5"> You can add new categories from here ..! </p>
+
+            <form action="" class="row text-center" #categoryForm = 'ngForm' (ngSubmit)="onSubmit(categoryForm)">
+                <div class="form-group col-md-10">
+                    <input type="text" name="category" class="form-control shadow-effect" placeholder="Add New Category" #newCategory = 'ngModel' [(ngModel)]="formCategory" [ngClass]="{'is-invalid': newCategory.touched && newCategory.invalid }" required ngModel>
+                    <div class="alert alert-danger" *ngIf=" newCategory.touched && newCategory.invalid">Please enter category name</div>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-block btn-info mb-2 btn-theme" [disabled]="categoryForm.invalid"> {{ formStatus }} Category </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row my-5">
+        <div class="col-md-3"></div>
+
+        <div class="col-md-6">
+            <div class="card shadow-effect">
+                <div class="card-body">
+                    <table class="table row-border hover">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let category of categoryArray; let i = index">
+                                <td>{{ i+1 }}</td>
+                                <td>{{ category.data.category }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning mr-2 mb-1" (click)="onEdit(category.id, category.data.category)"><i class="fas fa-pen mr-1"></i> Edit </button>
+                                    <button class="btn btn-sm btn-danger mb-1" (click)="onDelete(category.id)"><i class="fas fa-trash mr-1"></i> Delete </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3"></div>
+    </div>
+</div>

@@ -1,0 +1,107 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { Post } from 'src/app/models/post';
+import { CategoriesService } from 'src/app/services/categories.service';
+import { PostsService } from 'src/app/services/posts.service';
+
+@Component({
+  selector: 'app-new-post',
+  templateUrl: './new-post.component.html',
+  styleUrls: ['./new-post.component.css']
+})
+export class NewPostComponent implements OnInit {
+
+  permalink: string = '';
+  imgSrc: any = './assets/placeholder-image.jpg'
+  selectedImg:  any;
+  categoryArray: Array<any> = [];
+
+  postForm: any;
+  disabled: boolean = true;
+  post: any;
+  formStatus: string = 'Add New';
+
+  docId: any;
+
+  constructor(private cs: CategoriesService, private fb: FormBuilder, private ps: PostsService, private route: ActivatedRoute){
+   
+    route.queryParams.subscribe(val =>{
+      this.docId = val['id'];
+      if(this.docId){
+        ps.loadOneData(val['id']).subscribe(post => {
+        
+          this.post = post;
+          
+          this.postForm = fb.group({
+            title: [this.post.title, [Validators.required, Validators.minLength(10)]],
+            permalink: [this.post.permalink, Validators.required],
+            excerpt: [this.post.excerpt, [Validators.required, Validators.minLength(50)]],
+            category: [this.post.categoryId, Validators.required],
+            postImg: ['', Validators.required],
+            content: [this.post.content, Validators.required]
+          })
+          this.imgSrc = this.post.postImgPath;
+          this.postForm.controls['permalink'].disable();
+          this.formStatus = 'Edit';
+        });
+      }
+      else{
+        this.postForm = fb.group({
+          title: ['', [Validators.required, Validators.minLength(10)]],
+          permalink: ['', Validators.required],
+          excerpt: ['', [Validators.required, Validators.minLength(50)]],
+          category: ['', Validators.required],
+          postImg: ['', Validators.required],
+          content: ['', Validators.required]
+        })
+        this.postForm.controls['permalink'].disable();
+      }
+    })
+  }
+  ngOnInit(): void {
+    this.cs.loadData().subscribe(val => {
+      console.log(val);
+      this.categoryArray = val;
+    })
+  }
+
+  get formControl(){
+    return this.postForm.controls;
+  }
+  
+  onTitleChanged($event: any){
+    const title = $event.target.value;
+    this.permalink = title.replace(/\s/g, '-');
+
+    //console.log(this.permalink);
+  }
+
+  showPreview($event: any){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.imgSrc = e.target?.result
+    }
+    reader.readAsDataURL($event.target.files[0]);
+    this.selectedImg = $event.target.files[0];
+  }
+
+  onSubmit(){
+    const postData: Post = {
+      title: this.postForm.value.title,
+      permalink: this.postForm.value.permalink = this.permalink,
+      categoryId: this.postForm.value.category,
+      postImgPath: '',
+      excerpt: this.postForm.value.excerpt,
+      content: this.postForm.value.content,
+      isFeatured: false,
+      views: 0,
+      status: 'new',
+      createdAt: new Date()
+    }
+    this.ps.savePost(this.selectedImg, postData, this.formStatus, this.docId)
+    this.postForm.reset();
+    this.imgSrc = './assets/placeholder-image.jpg';
+  }
+  
+}
